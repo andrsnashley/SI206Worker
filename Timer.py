@@ -11,19 +11,14 @@ class UserTimer:
     lastDatetime = None # most current datetime a user has worked on a problem
     
 # function that times how long a user works on a problem
-def problem_timer(inFileName, outFileName, eventTypeArray):
+def problem_timer(inFileName, eventTypeArray):
 
     # set the field size to max
     csv.field_size_limit(sys.maxsize)
 
-    # open the output file for writing
-    dir = os.path.dirname(__file__)
-    outFile = open(os.path.join(dir, outFileName), "w")
-
     # open the input and output files as csv files
-    with open(os.path.join(dir, inFileName)) as csv_file:
+    with open(inFileName) as csv_file:
         csv_reader = csv.reader(csv_file)
-        csv_writer = csv.writer(outFile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         # create an empty timer dictionary and dictionaries that tracks a user's current problem / completed problems
         probDict = dict()
@@ -85,15 +80,9 @@ def problem_timer(inFileName, outFileName, eventTypeArray):
 
             userCurrentProblem[user] = div
 
-        for div in probDict:
-            for user in probDict[div]:
- 
-                csv_writer.writerow([div, user, probDict[div][user].accumulatedTimeSeconds])
-
-    outFile.close()
+    return probDict
 
 
-
-problem_timer("SI206-Win20-Anon.csv", "timerClassAttempt.csv", ["parsonsMove", "parsons"])
+timerDict = problem_timer("SI206-Win20-Anon.csv", ["parsonsMove", "parsons"])
 
  
