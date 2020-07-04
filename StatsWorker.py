@@ -5,6 +5,10 @@ import math
 import datetime as dt
 import numpy as ny
 
+class UserProblemState:
+    accumulatedTimeSeconds = 0
+    lastDatetime = None
+    
 # 
 def problem_timer(inFileName, outFileName, eventTypeArray):
 
@@ -21,7 +25,7 @@ def problem_timer(inFileName, outFileName, eventTypeArray):
         csv_writer = csv.writer(outFile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
         # create an empty timer dictionary and dictionaries that tracks a user's current problem / completed problems
-        probDict = dict()
+        probUserState = dict()
         userCurrentProblem = dict()
         userCompletedProblems = dict()
 
@@ -33,7 +37,7 @@ def problem_timer(inFileName, outFileName, eventTypeArray):
             time = dt.datetime.strptime(cols[2], "%Y-%m-%d %H:%M:%S")
             event = cols[3]
             move = cols[4]
-            div = cols[5]
+            rowProblem = cols[5]
 
             if event in eventTypeArray:
 
@@ -42,74 +46,53 @@ def problem_timer(inFileName, outFileName, eventTypeArray):
                     userCompletedProblems[user]= []
 
                 # if no dictionary for this problem create one and add this user and time
-                if div not in probDict:
-                    userDict = {}
-                    probDict[div] = userDict
-                else:
-                    userDict = probDict[div]
+                if rowProblem not in probUserState:
+                    probUserState[rowProblem] = {}
+                userDict = probUserState[rowProblem]
 
-                # track when user starts a problem and add the timestamp to probDict
+                # track when user starts a problem and add the timestamp to probUserState
                 if user not in userDict:
-                    probDict[div][user] = []
+                    probUserState[rowProblem][user] = UserProblemState()
                     if move.split('|')[0] == "start" or move == "edit":
-                        probDict[div][user].append(time)
-                        userCurrentProblem[user] = div
+                        probUserState[rowProblem][user].lastDatetime = time
 
                 elif user in userCurrentProblem:
 
                     # check if user is working on this problem and is on their first attempt
-                    if div not in userCompletedProblems[user] and div == userCurrentProblem[user]:
+                    if rowProblem not in userCompletedProblems[user] and rowProblem == userCurrentProblem[user]:
 
                         # if time between moves is greater than five minutes, remove that time
-                        if (time - probDict[div][user][len(probDict[div][user]) - 1]) > dt.timedelta(minutes=5):
-                            probDict[div][user].pop()
-                        else:
-                            probDict[div][user][len(probDict[div][user]) - 1] = str(time - probDict[div][user][len(probDict[div][user]) - 1])
+                        if probUserState[rowProblem][user].lastDatetime is not None and (time - probUserState[rowProblem][user].lastDatetime) > dt.timedelta(minutes=5):
+                            probUserState[rowProblem][user].lastDatetime = None
+                        elif probUserState[rowProblem][user].lastDatetime is not None:
+                            timedelta = time - probUserState[rowProblem][user].lastDatetime
+                            probUserState[rowProblem][user].accumulatedTimeSeconds += timedelta.seconds
                         
                         # add completed problems to userCompletedProblems
                         if move.split('|')[0] == "correct" or move.split('.')[0] == "percent:100": 
-                            userCompletedProblems[user].append(div)
+                            userCompletedProblems[user].append(rowProblem)
                             del userCurrentProblem[user]
                         else:
-                            probDict[div][user].append(time)
-                            userCurrentProblem[user] = div
+                            probUserState[rowProblem][user].lastDatetime = time
                     
                     # when user goes to different question, pause time to previous question and begin timer on new question
-                    elif div not in userCompletedProblems[user] and div != userCurrentProblem[user]:
+                    elif rowProblem not in userCompletedProblems[user] and rowProblem != userCurrentProblem[user]:
                         
-                        if userCurrentProblem[user] in probDict:
-                            probDict[userCurrentProblem[user]][user].pop()
-                        probDict[div][user].append(time)
-                        userCurrentProblem[user] = div
+                        if userCurrentProblem[user] in probUserState:
+                            probUserState[userCurrentProblem[user]][user].lastDatetime = None
+                        probUserState[rowProblem][user].lastDatetime = time
 
-            # check if user is performing a different interaction to pause the time
-            elif user in userCurrentProblem:
-                if userCurrentProblem[user] in probDict:
-                    probDict[userCurrentProblem[user]][user].pop()
-                userCurrentProblem[user] = div
+            userCurrentProblem[user] = rowProblem
 
-        for div in probDict:
-            for user in probDict[div]:
-
-                totalTimeToSolve = 0
-
-                for x in range(len(probDict[div][user])):
-
-                    time = probDict[div][user][x]
-                    if not isinstance(time, str):
-                        totalTimeToSolve += 0
-                    else:
-                        hh, mm , ss = map(int, time.split(':'))
-                        totalTimeToSolve += (ss + 60*(mm + 60*hh))
-                
-                probDict[div][user] = totalTimeToSolve
-                
-            csv_writer.writerow([div, probDict[div]])
+        for rowProblem in probUserState:
+            for user in probUserState[rowProblem]:
+ 
+                csv_writer.writerow([rowProblem, user, probUserState[rowProblem][user].accumulatedTimeSeconds])
 
     outFile.close()
 
 
 
-problem_timer("SI206-Win20-Anon.csv", "timerTotalTime.csv", ["parsonsMove", "parsons"])
+problem_timer("SI206-Win20-Anon.csv", "timerClassAttempt.csv", ["parsonsMove", "parsons"])
 
  
