@@ -5,6 +5,7 @@ import math
 import datetime as dt
 import numpy as ny
 
+
 def users_attempts_prob(inFileName):
 
     # set the field size to max
@@ -49,6 +50,7 @@ def users_attempts_prob(inFileName):
 
     return probAttempts
 
+
 def users_attempted_completed_prob(inFileName, probDict):
 
     # set the field size to max
@@ -91,5 +93,17 @@ def users_attempted_completed_prob(inFileName, probDict):
     return probAttemptedCompleted
 
 
+def prob_percent_completed(probDict):
+
+    probPercentCompleted = dict()
+
+    for div in probDict:
+        if probDict[div][0] > 0:
+            probPercentCompleted[div] = (probDict[div][1] / probDict[div][0]) * 100
+        else:
+            probPercentCompleted[div] = 0
+
+
 probAttempts = users_attempts_prob("SI206-Win20-Anon.csv")
-probDict = users_attempted_completed_prob("SI206-Win20-Anon.csv", probAttempts)
+probAttemptedCompleted = users_attempted_completed_prob("SI206-Win20-Anon.csv", probAttempts)
+prob_percent_completed(probAttemptedCompleted)
