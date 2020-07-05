@@ -5,72 +5,91 @@ import math
 import datetime as dt
 import numpy as ny
 
-def users_attempted_completed_prob(inFileName, outFileName):
+def users_attempts_prob(inFileName):
 
-        # set the field size to max
-        csv.field_size_limit(sys.maxsize)
+    # set the field size to max
+    csv.field_size_limit(sys.maxsize)
 
-        # open the output file for writing
-        dir = os.path.dirname(__file__)
-        outFile = open(os.path.join(dir, outFileName), "w")
+    # open the input and output files as csv files
+    with open(inFileName) as csv_file:
+        csv_reader = csv.reader(csv_file)
 
-        # open the input and output files as csv files
-        with open(os.path.join(dir, inFileName)) as csv_file:
-            csv_reader = csv.reader(csv_file)
-            csv_writer = csv.writer(outFile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        # create an empty attempts dictionary and one that tracks a users completion status of problems
+        probAttempts = dict()
+        usersCompletedProb = dict()
 
-            # create dictionary that tracks a users completion status of problems
-            probDict = dict()
-            usersCompletedProb = dict()
+        # loop through the data
+        for cols in csv_reader:
 
-            # loop through the data
-            for cols in csv_reader:
+            # get the user, move, and problem name
+            user = cols[1]
+            move = cols[4]
+            div = cols[5]
 
-                # get the user, move, and problem name
-                user = cols[1]
-                move = cols[4]
-                div = cols[5]
+            # if no dictionary for this problem create one and add this user
+            if div not in probAttempts:
+                userDict = {}
+                probAttempts[div] = userDict
+            else:
+                userDict = probAttempts[div]
 
-                # if no dictionary for this problem create one and add this user
-                if div not in probDict:
-                    userDict = {}
-                    probDict[div] = userDict
-                else:
-                    userDict = probDict[div]
+            # if user is new, set user to 0 attempts
+            if user not in userDict:
+                probAttempts[div][user] = 0
 
-                if user not in userDict:
-                    probDict[div][user] = []
+            if user not in usersCompletedProb:
+                usersCompletedProb[user] = []
 
-                if user not in usersCompletedProb:
+            if move.split('|')[0] == "correct" and div not in usersCompletedProb[user]:
+                probAttempts[div][user] += 1
+                usersCompletedProb[user].append(div)
 
-                    usersCompletedProb[user] = []
+            elif user in userDict and move.split('|')[0] == "incorrect" and div not in usersCompletedProb[user]:
+                probAttempts[div][user] += 1
 
-                if user in userDict and move.split('|')[0] == "correct" and div not in usersCompletedProb[user]:
+    return probAttempts
 
-                    probDict[div][user] += 1
+def users_attempted_completed_prob(inFileName, probDict):
 
-                    usersCompletedProb[user].append(div)
+    # set the field size to max
+    csv.field_size_limit(sys.maxsize)
 
-                elif user in userDict and move.split('|')[0] == "incorrect" and div not in usersCompletedProb[user]:
+    # open the input and output files as csv files
+    with open(inFileName) as csv_file:
+        csv_reader = csv.reader(csv_file)
 
-                    probDict[div][user] += 1
+        # create an empty attempts dictionary and one that tracks a users completion status of problems
+        probAttemptedCompleted = dict()
+        usersCompletedProb = dict()
 
-            csv_writer.writerow(["Problem Div", "Attempted", "Correct", "25%", "50%", "75%", "100%"])
+        # loop through the data
+        for cols in csv_reader:
 
-            # output the stats for each problem type
-            for div in probDict:
+            # get the user, move, and problem name
+            user = cols[1]
+            move = cols[4]
+            div = cols[5]
 
-                usersAttempted = 0
-                usersCorrect = 0
-                numAttemptsArray = []
+            # if no dictionary for this problem create one and add this user
+            if div not in probAttemptedCompleted:
+                probAttemptedCompleted[div] = [0, 0] # number of users who attempted and completed
 
-                for user in probDict[div]:
+            if user not in usersCompletedProb:
+                usersCompletedProb[user] = []
 
-                    if probDict[div][user] != 0:
+            if move.split('|')[0] == "correct" and div not in usersCompletedProb[user]:
+                probAttemptedCompleted[div][1] += 1
+                usersCompletedProb[user].append(div)
 
-                        if user in usersCompletedProb and div in usersCompletedProb[user]:
+        for div in probDict:
+            usersAttempted = 0
+            for user in probDict[div]:
+                if probDict[div][user] > 0:
+                    usersAttempted += 1
+            probAttemptedCompleted[div][0] = usersAttempted
 
-                            usersCorrect += 1
-                            numAttemptsArray.append(probDict[div][user])
+    return probAttemptedCompleted
 
-                        usersAttempted += 1
+
+probAttempts = users_attempts_prob("SI206-Win20-Anon.csv")
+probDict = users_attempted_completed_prob("SI206-Win20-Anon.csv", probAttempts)

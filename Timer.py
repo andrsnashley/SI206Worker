@@ -21,7 +21,7 @@ def problem_timer(inFileName, eventTypeArray):
         csv_reader = csv.reader(csv_file)
 
         # create an empty timer dictionary and dictionaries that tracks a user's current problem / completed problems
-        probDict = dict()
+        probUserTimer = dict()
         userCurrentProblem = dict()
         userCompletedProblems = dict()
 
@@ -42,15 +42,15 @@ def problem_timer(inFileName, eventTypeArray):
                     userCompletedProblems[user]= []
 
                 # if no dictionary for this problem create one and add this user and time
-                if div not in probDict:
-                    probDict[div] = {}
-                userDict = probDict[div]
+                if div not in probUserTimer:
+                    probUserTimer[div] = {}
+                userDict = probUserTimer[div]
 
-                # track when user starts a problem and add the timestamp to probDict
+                # track when user starts a problem and add the timestamp to probUserTimer
                 if user not in userDict:
-                    probDict[div][user] = UserTimer()
+                    probUserTimer[div][user] = UserTimer()
                     if move.split('|')[0] == "start" or move == "edit":
-                        probDict[div][user].lastDatetime = time
+                        probUserTimer[div][user].lastDatetime = time
 
                 elif user in userCurrentProblem:
 
@@ -58,29 +58,29 @@ def problem_timer(inFileName, eventTypeArray):
                     if div not in userCompletedProblems[user] and div == userCurrentProblem[user]:
 
                         # if time between moves is greater than five minutes, remove that time
-                        if probDict[div][user].lastDatetime is not None and (time - probDict[div][user].lastDatetime) > dt.timedelta(minutes=5):
-                            probDict[div][user].lastDatetime = None
-                        elif probDict[div][user].lastDatetime is not None:
-                            timedelta = time - probDict[div][user].lastDatetime
-                            probDict[div][user].accumulatedTimeSeconds += timedelta.seconds
+                        if probUserTimer[div][user].lastDatetime is not None and (time - probUserTimer[div][user].lastDatetime) > dt.timedelta(minutes=5):
+                            probUserTimer[div][user].lastDatetime = None
+                        elif probUserTimer[div][user].lastDatetime is not None:
+                            timedelta = time - probUserTimer[div][user].lastDatetime
+                            probUserTimer[div][user].accumulatedTimeSeconds += timedelta.seconds
                         
                         # add completed problems to userCompletedProblems
                         if move.split('|')[0] == "correct" or move.split('.')[0] == "percent:100": 
                             userCompletedProblems[user].append(div)
                             del userCurrentProblem[user]
                         else:
-                            probDict[div][user].lastDatetime = time
+                            probUserTimer[div][user].lastDatetime = time
                     
                     # when user goes to different question, pause time to previous question and begin timer on new question
                     elif div not in userCompletedProblems[user] and div != userCurrentProblem[user]:
                         
-                        if userCurrentProblem[user] in probDict:
-                            probDict[userCurrentProblem[user]][user].lastDatetime = None
-                        probDict[div][user].lastDatetime = time
+                        if userCurrentProblem[user] in probUserTimer:
+                            probUserTimer[userCurrentProblem[user]][user].lastDatetime = None
+                        probUserTimer[div][user].lastDatetime = time
 
             userCurrentProblem[user] = div
 
-    return probDict
+    return probUserTimer
 
 
 timerDict = problem_timer("SI206-Win20-Anon.csv", ["parsonsMove", "parsons"])
