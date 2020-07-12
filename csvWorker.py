@@ -45,15 +45,51 @@ def carl_exp1_pp1a(timerDict, outFileName):
 
     outFile.close()
 
+def problem_5_part1(attemptedCompletedDict, usersResetProb, outFileName):
 
-timerDictParsons = problem_timer("SI206-Win20-Anon.csv", ["parsonsMove", "parsons"])
-timerDictActiveCode = problem_timer("SI206-Win20-Anon.csv", ["activecode", "unittest", "ac_error"])
-probAttempts = users_attempts_prob("SI206-Win20-Anon.csv")
+    # set the field size to max
+    csv.field_size_limit(sys.maxsize)
+
+    # open the output file for writing
+    dir = os.path.dirname(__file__)
+
+    # open the input and output files as csv files
+    with open(os.path.join(dir, outFileName), "w") as outFile:
+        csv_writer = csv.writer(outFile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        numberUniqueUsersReset = {}
+
+        for div in usersResetProb:
+            count = 0
+            for user in usersResetProb[div]:
+                if usersResetProb[div][user] == True:
+                    count += 1
+            numberUniqueUsersReset[div] = count
+
+        for div in numberUniqueUsersReset:
+            if div in attemptedCompletedDict:
+
+                csv_writer.writerow([div, attemptedCompletedDict[div][0], attemptedCompletedDict[div][1], numberUniqueUsersReset[div]])
+
+    outFile.close()
+
+def problem_5_part2(averageStdDevDictFirstAttempt, averageStdDevDictSecondAttempt):
+
+# def problem_6(usersResetProb, outFileName):
+
+
 usersCompletedProb = users_completed("SI206-Win20-Anon.csv")
-attemptedCompletedDict = prob_attempted_completed_prob("SI206-Win20-Anon.csv", probAttempts)
-probPercentCompleted = prob_percent_completed(attemptedCompletedDict)
-averageStdDevDict = prob_timer_average_stdDev(timerDictActiveCode, usersCompletedProb)
+probAttempts = users_attempts_prob("SI206-Win20-Anon.csv")
+probAttemptedCompleted = prob_attempted_completed_prob("SI206-Win20-Anon.csv", probAttempts)
+usersResetProb = users_who_reset("SI206-Win20-Anon.csv", usersCompletedProb)
 
-# problem_1(averageStdDevDict, attemptedCompletedDict, probPercentCompleted, "testing.csv")
-problem_1(averageStdDevDict, attemptedCompletedDict, probPercentCompleted, "testingActiveCode.csv")
+probUserTimerFirstAttempt = problem_timer("SI206-Win20-Anon.csv", ["parsons", "parsonsMove"])
+averageStdDevDictFirstAttempt = prob_timer_average_stdDev(probUserTimerFirstAttempt, usersCompletedProb)
+probUserTimerSecondAttempt, userCompletedSecondAttempt = second_attempt_problem_timer("SI206-Win20-Anon.csv", ["parsons", "parsonsMove"], usersCompletedProb):
+averageStdDevDictSecondAttempt = prob_timer_average_stdDev(probUserTimerSecondAttempt, userCompletedSecondAttempt)
+
+
+# problem_1(averageStdDevDict, attemptedCompletedDict, probPercentCompleted, "ParsonsTimes.csv")
+# problem_1(averageStdDevDict, attemptedCompletedDict, probPercentCompleted, "ActiveCodeTimes.csv")
 # carl_exp1_pp1a(timerDictParsons, "exp1_pp1aStats.csv")
+problem_5_part1(probAttemptedCompleted, usersResetProb, "problem5part1.csv")

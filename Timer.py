@@ -152,4 +152,4 @@ def second_attempt_problem_timer(inFileName, eventTypeArray, usersCompletedProb)
 
             userCurrentProblem[user] = div
 
-    return probUserTimer
+    return probUserTimer, userCompletedSecondAttempt

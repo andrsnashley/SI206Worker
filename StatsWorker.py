@@ -158,3 +158,39 @@ def prob_timer_average_stdDev(timerDict, usersCompletedProb):
     
     return probAverageStdDev
             
+def users_who_reset(inFileName, usersCompletedProb):
+
+     # set the field size to max
+    csv.field_size_limit(sys.maxsize)
+
+    # open the input and output files as csv files
+    with open(inFileName) as csv_file:
+        csv_reader = csv.reader(csv_file)
+
+        # create an empty  dictionary that tracks a users completion status of problems
+        usersResetProb = dict()
+        usersLastMove = dict()
+
+        # loop through the data
+        for cols in csv_reader:
+
+            # get the user, move, and problem name
+            user = cols[1]
+            event = cols[3]
+            move = cols[4]
+            div = cols[5]
+
+            if event == "parsons" or event == "parsonsMove":
+
+                if div not in usersResetProb:
+                    usersResetProb[div] = {}
+                if user not in usersResetProb[div]:
+                    usersResetProb[div][user] = False
+
+                if move.split('|')[0] == "reset":
+                    if user in usersCompletedProb and div in usersCompletedProb[user] and usersLastMove[user][1] == div and usersLastMove[user][0].split('|')[0] == "correct":
+                        usersResetProb[div][user] = True
+                
+            usersLastMove[user] = [move, div]
+            
+    return usersResetProb
