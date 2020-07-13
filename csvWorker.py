@@ -2,7 +2,7 @@ import csv
 import os
 import sys
 from StatsWorker import *
-from Timer import problem_timer
+from Timer import problem_timer, second_attempt_problem_timer
 
 def problem_1(averageStdDevDict, attemptedCompletedDict, probPercentCompleted, outFileName):
 
@@ -73,7 +73,25 @@ def problem_5_part1(attemptedCompletedDict, usersResetProb, outFileName):
 
     outFile.close()
 
-def problem_5_part2(averageStdDevDictFirstAttempt, averageStdDevDictSecondAttempt):
+def problem_5_part2(averageStdDevDictFirstAttempt, averageStdDevDictSecondAttempt, userCompletedSecondAttempt, outFileName):
+
+    # set the field size to max
+    csv.field_size_limit(sys.maxsize)
+
+    # open the output file for writing
+    dir = os.path.dirname(__file__)
+
+    # open the input and output files as csv files
+    with open(os.path.join(dir, outFileName), "w") as outFile:
+        csv_writer = csv.writer(outFile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        for div in averageStdDevDictFirstAttempt:
+            if div in averageStdDevDictSecondAttempt:
+                csv_writer.writerow([div, averageStdDevDictFirstAttempt[div][0], averageStdDevDictSecondAttempt[div][0]])
+            else:
+                csv_writer.writerow([div, averageStdDevDictFirstAttempt[div][0], "0"])
+
+    outFile.close()
 
 # def problem_6(usersResetProb, outFileName):
 
@@ -85,11 +103,12 @@ usersResetProb = users_who_reset("SI206-Win20-Anon.csv", usersCompletedProb)
 
 probUserTimerFirstAttempt = problem_timer("SI206-Win20-Anon.csv", ["parsons", "parsonsMove"])
 averageStdDevDictFirstAttempt = prob_timer_average_stdDev(probUserTimerFirstAttempt, usersCompletedProb)
-probUserTimerSecondAttempt, userCompletedSecondAttempt = second_attempt_problem_timer("SI206-Win20-Anon.csv", ["parsons", "parsonsMove"], usersCompletedProb):
-averageStdDevDictSecondAttempt = prob_timer_average_stdDev(probUserTimerSecondAttempt, userCompletedSecondAttempt)
+probUserTimerSecondAttempt, userCompletedSecondAttempt = second_attempt_problem_timer("SI206-Win20-Anon.csv", usersCompletedProb, ["parsons", "parsonsMove"])
+averageStdDevDictSecondAttempt = prob_timer_average_stdDev(probUserTimerSecondAttempt, userCompletedSecondAttempt,)
 
 
 # problem_1(averageStdDevDict, attemptedCompletedDict, probPercentCompleted, "ParsonsTimes.csv")
 # problem_1(averageStdDevDict, attemptedCompletedDict, probPercentCompleted, "ActiveCodeTimes.csv")
 # carl_exp1_pp1a(timerDictParsons, "exp1_pp1aStats.csv")
-problem_5_part1(probAttemptedCompleted, usersResetProb, "problem5part1.csv")
+# problem_5_part1(probAttemptedCompleted, usersResetProb, "problem5part1.csv")
+problem_5_part2(averageStdDevDictFirstAttempt, averageStdDevDictSecondAttempt, userCompletedSecondAttempt, "problem5part2.csv")

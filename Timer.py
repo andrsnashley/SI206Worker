@@ -83,7 +83,7 @@ def problem_timer(inFileName, eventTypeArray):
     return probUserTimer
 
 # function that times how long a user works on a problem their second attempt
-def second_attempt_problem_timer(inFileName, eventTypeArray, usersCompletedProb):
+def second_attempt_problem_timer(inFileName, usersCompletedProb, eventTypeArray):
 
     # set the field size to max
     csv.field_size_limit(sys.maxsize)
@@ -107,27 +107,25 @@ def second_attempt_problem_timer(inFileName, eventTypeArray, usersCompletedProb)
             move = cols[4]
             div = cols[5]
 
-            if event in eventTypeArray and user in usersCompletedProb and div in usersCompletedProb[div]:
+            if event in eventTypeArray:
 
-                # create array of problems a user has completed
                 if user not in userCompletedSecondAttempt:
                     userCompletedSecondAttempt[user]= []
 
-                # if no dictionary for this problem create one and add this user and time
-                if div not in probUserTimer:
-                    probUserTimer[div] = {}
-                userDict = probUserTimer[div]
+                if user in usersCompletedProb and div in usersCompletedProb[user] and div not in userCompletedSecondAttempt[user]:
 
-                # track when user starts a problem and add the timestamp to probUserTimer
-                if user not in userDict:
-                    probUserTimer[div][user] = UserTimer()
-                    if move.split('|')[0] == "start" or move == "edit":
+                    if move.split('|')[0] == "reset":
+
+                        # if no dictionary for this problem create one and add this user and time
+                        if div not in probUserTimer:
+                            probUserTimer[div] = {}
+
+                        # start timer for user
+                        probUserTimer[div][user] = UserTimer() 
                         probUserTimer[div][user].lastDatetime = time
+                        probUserTimer[div][user].accumulatedTimeSeconds = 0
 
-                elif user in userCurrentProblem:
-
-                    # check if user is working on this problem and is on their first attempt
-                    if div not in userCompletedSecondAttempt[user] and div == userCurrentProblem[user]:
+                    elif div in probUserTimer and user in probUserTimer[div]:
 
                         # if time between moves is greater than five minutes, remove that time
                         if probUserTimer[div][user].lastDatetime is not None and (time - probUserTimer[div][user].lastDatetime) > dt.timedelta(minutes=5):
@@ -135,18 +133,18 @@ def second_attempt_problem_timer(inFileName, eventTypeArray, usersCompletedProb)
                         elif probUserTimer[div][user].lastDatetime is not None:
                             timedelta = time - probUserTimer[div][user].lastDatetime
                             probUserTimer[div][user].accumulatedTimeSeconds += timedelta.seconds
-                        
+                            
                         # add completed problems to userCompletedProblems
-                        if move.split('|')[0] == "correct" or move.split('.')[0] == "percent:100": 
+                        if move.split('|')[0] == "correct": 
                             userCompletedSecondAttempt[user].append(div)
                             del userCurrentProblem[user]
                         else:
                             probUserTimer[div][user].lastDatetime = time
-                    
-                    # when user goes to different question, pause time to previous question and begin timer on new question
-                    elif div not in userCompletedSecondAttempt[user] and div != userCurrentProblem[user]:
                         
-                        if userCurrentProblem[user] in probUserTimer:
+                    # when user goes to different question, pause time to previous question and begin timer on new question
+                    elif div in probUserTimer and user in probUserTimer[div] and div != userCurrentProblem[user]:
+                        
+                        if userCurrentProblem[user] in probUserTimer and user in probUserTimer[userCurrentProblem[user]]:
                             probUserTimer[userCurrentProblem[user]][user].lastDatetime = None
                         probUserTimer[div][user].lastDatetime = time
 
