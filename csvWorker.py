@@ -93,22 +93,14 @@ def problem_5_part2(averageStdDevDictFirstAttempt, averageStdDevDictSecondAttemp
 
     outFile.close()
 
-# def problem_6(usersResetProb, outFileName):
 
 
-usersCompletedProb = users_completed("SI206-Win20-Anon.csv")
-probAttempts = users_attempts_prob("SI206-Win20-Anon.csv")
-probAttemptedCompleted = prob_attempted_completed_prob("SI206-Win20-Anon.csv", probAttempts)
-usersResetProb = users_who_reset("SI206-Win20-Anon.csv", usersCompletedProb)
-
-probUserTimerFirstAttempt = problem_timer("SI206-Win20-Anon.csv", ["parsons", "parsonsMove"])
-averageStdDevDictFirstAttempt = prob_timer_average_stdDev(probUserTimerFirstAttempt, usersCompletedProb)
-probUserTimerSecondAttempt, userCompletedSecondAttempt = second_attempt_problem_timer("SI206-Win20-Anon.csv", usersCompletedProb, ["parsons", "parsonsMove"])
-averageStdDevDictSecondAttempt = prob_timer_average_stdDev(probUserTimerSecondAttempt, userCompletedSecondAttempt,)
+errorStateStatsDict = error_state_collector("SI206-Win20-Anon.csv")
 
 
 # problem_1(averageStdDevDict, attemptedCompletedDict, probPercentCompleted, "ParsonsTimes.csv")
 # problem_1(averageStdDevDict, attemptedCompletedDict, probPercentCompleted, "ActiveCodeTimes.csv")
 # carl_exp1_pp1a(timerDictParsons, "exp1_pp1aStats.csv")
 # problem_5_part1(probAttemptedCompleted, usersResetProb, "problem5part1.csv")
-problem_5_part2(averageStdDevDictFirstAttempt, averageStdDevDictSecondAttempt, userCompletedSecondAttempt, "problem5part2.csv")
+# problem_5_part2(averageStdDevDictFirstAttempt, averageStdDevDictSecondAttempt, userCompletedSecondAttempt, "problem5part2.csv")
+

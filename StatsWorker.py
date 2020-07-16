@@ -4,6 +4,7 @@ import sys
 import math
 import datetime as dt
 import numpy as ny
+from collections import OrderedDict
 from statistics import mean, stdev 
 
 
@@ -194,3 +195,43 @@ def users_who_reset(inFileName, usersCompletedProb):
             usersLastMove[user] = [move, div]
             
     return usersResetProb
+
+def error_state_collector(inFileName):
+
+    # set the field size to max
+    csv.field_size_limit(sys.maxsize)
+
+    # open the input and output files as csv files
+    with open(inFileName) as csv_file:
+        csv_reader = csv.reader(csv_file)
+
+        # create an empty  dictionary that tracks a users completion status of problems
+        probTotalErrorStates = dict()
+
+        # loop through the data
+        for cols in csv_reader:
+
+            # get the user, move, and problem name
+            event = cols[3]
+            move = cols[4]
+            div = cols[5]
+
+            if event == "parsons" or event == "parsonsMove":
+
+                if move.split('|')[0] == "incorrect":
+
+                    if div not in probTotalErrorStates:
+                        probTotalErrorStates[div] = {}
+
+                    errorState = move.split('|')[1] + "|" + move.split('|')[2]
+                    if errorState in probTotalErrorStates[div]:
+                        probTotalErrorStates[div][errorState] += 1
+                    else:
+                        probTotalErrorStates[div][errorState] = 1
+
+        for div in probTotalErrorStates:
+
+            orderedErrorStates = OrderedDict(sorted(probTotalErrorStates[div].items(), key=lambda x: x[1]))
+
+    return probTotalErrorStates
+
