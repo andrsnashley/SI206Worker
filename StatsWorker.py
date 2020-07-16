@@ -4,7 +4,7 @@ import sys
 import math
 import datetime as dt
 import numpy as ny
-from collections import OrderedDict
+from collections import Counter
 from statistics import mean, stdev 
 
 
@@ -221,17 +221,15 @@ def error_state_collector(inFileName):
                 if move.split('|')[0] == "incorrect":
 
                     if div not in probTotalErrorStates:
-                        probTotalErrorStates[div] = {}
+                        probTotalErrorStates[div] = []
 
                     errorState = move.split('|')[1] + "|" + move.split('|')[2]
-                    if errorState in probTotalErrorStates[div]:
-                        probTotalErrorStates[div][errorState] += 1
-                    else:
-                        probTotalErrorStates[div][errorState] = 1
+                    probTotalErrorStates[div].append(errorState)
 
         for div in probTotalErrorStates:
-
-            orderedErrorStates = OrderedDict(sorted(probTotalErrorStates[div].items(), key=lambda x: x[1]))
-
+            
+            mostCommonErrorStates = Counter(probTotalErrorStates[div]).most_common(5)
+            probTotalErrorStates[div] = mostCommonErrorStates
+        
     return probTotalErrorStates
 
